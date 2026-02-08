@@ -30,6 +30,7 @@ enum Cmd {
 #[derive(Clone)]
 struct ArchInfo {
     target: &'static str,
+    #[allow(dead_code)]
     platform: &'static str,
     objcopy_arch: &'static str,
 }
@@ -80,22 +81,65 @@ fn install_config(root: &Path, arch: &str) {
     println!("Installed config: {} -> .axconfig.toml", src.display());
 }
 
-/// Build the guest payload (gkernel) for the target architecture.
-fn build_payload(root: &Path, info: &ArchInfo) -> PathBuf {
+/// Install the platform config for the guest payload.
+fn install_payload_config(root: &Path, arch: &str) {
+    let payload_dir = root.join("payload").join("gkernel");
+    let src = payload_dir.join("configs").join(format!("{arch}.toml"));
+    let dst = payload_dir.join(".axconfig.toml");
+    if !src.exists() {
+        eprintln!("Error: payload config file not found: {}", src.display());
+        process::exit(1);
+    }
+    std::fs::copy(&src, &dst).unwrap_or_else(|e| {
+        eprintln!("Error: failed to copy payload config: {}", e);
+        process::exit(1);
+    });
+    println!(
+        "Installed payload config: {} -> payload/gkernel/.axconfig.toml",
+        src.display()
+    );
+}
+
+/// Build the guest payload (gkernel = readpflash) for the target architecture.
+///
+/// The payload is a full ArceOS application built with the `axstd` feature.
+fn build_payload(root: &Path, info: &ArchInfo, arch: &str) -> PathBuf {
     let payload_dir = root.join("payload").join("gkernel");
     let manifest = payload_dir.join("Cargo.toml");
 
-    println!("Building payload (gkernel) ...");
+    println!("Building payload (gkernel) for {arch} ...");
 
-    let status = Command::new("cargo")
-        .args([
-            "build",
-            "--release",
-            "--manifest-path",
-            manifest.to_str().unwrap(),
-            "--target",
-            info.target,
-        ])
+    let mut cmd = Command::new("cargo");
+
+    // For riscv64: full ArceOS guest via axstd feature.
+    // Also set AX_CONFIG_PATH so the platform crate picks up our custom config
+    // (including pflash MMIO range). The crates.io default config lacks pflash.
+    if arch == "riscv64" {
+        let axconfig_path = payload_dir.join(".axconfig.toml");
+        println!(
+            "Setting AX_CONFIG_PATH={} for payload build",
+            axconfig_path.display()
+        );
+        cmd.env("AX_CONFIG_PATH", axconfig_path.to_str().unwrap());
+    }
+
+    let mut build_args = vec![
+        "build".to_string(),
+        "--release".into(),
+        "--manifest-path".into(),
+        manifest.to_str().unwrap().to_string(),
+        "--target".into(),
+        info.target.to_string(),
+    ];
+
+    // Only riscv64 uses the axstd feature (full ArceOS guest)
+    if arch == "riscv64" {
+        build_args.push("--features".into());
+        build_args.push("axstd".into());
+    }
+
+    let status = cmd
+        .args(&build_args)
         .status()
         .unwrap_or_else(|e| {
             eprintln!("Error: failed to run cargo build for payload: {}", e);
@@ -115,16 +159,29 @@ fn build_payload(root: &Path, info: &ArchInfo) -> PathBuf {
 
     let payload_bin = payload_elf.with_extension("bin");
 
+    // Convert ELF to flat binary
+    let mut objcopy_args = vec![
+        format!("--binary-architecture={}", info.objcopy_arch),
+        payload_elf.to_str().unwrap().to_string(),
+        "--strip-all".into(),
+        "-O".into(),
+        "binary".into(),
+        payload_bin.to_str().unwrap().to_string(),
+    ];
+
+    // For x86_64, we don't pass --binary-architecture (not needed for ELF→bin)
+    if info.objcopy_arch == "x86_64" {
+        objcopy_args = vec![
+            payload_elf.to_str().unwrap().to_string(),
+            "--strip-all".into(),
+            "-O".into(),
+            "binary".into(),
+            payload_bin.to_str().unwrap().to_string(),
+        ];
+    }
+
     let status = Command::new("rust-objcopy")
-        .args([
-            &format!("--binary-architecture={}", info.objcopy_arch),
-            "--only-section=.text",
-            payload_elf.to_str().unwrap(),
-            "--strip-all",
-            "-O",
-            "binary",
-            payload_bin.to_str().unwrap(),
-        ])
+        .args(&objcopy_args)
         .status()
         .expect("failed to execute rust-objcopy for payload");
 
@@ -133,7 +190,16 @@ fn build_payload(root: &Path, info: &ArchInfo) -> PathBuf {
         process::exit(status.code().unwrap_or(1));
     }
 
-    println!("Payload built: {}", payload_bin.display());
+    // Print binary size
+    if let Ok(meta) = std::fs::metadata(&payload_bin) {
+        println!(
+            "Payload built: {} ({} bytes, {} KB)",
+            payload_bin.display(),
+            meta.len(),
+            meta.len() / 1024
+        );
+    }
+
     payload_bin
 }
 
@@ -196,11 +262,11 @@ fn create_fat_disk_image(path: &Path, payload_bin: &Path) {
     );
 }
 
-/// Create a pflash image with magic "pfld" at offset 0 (for riscv64 NPF test).
+/// Create a pflash image with magic "pfld" at offset 0 (for NPF passthrough test).
 fn create_pflash_image(root: &Path, arch: &str) -> PathBuf {
     let size: usize = match arch {
-        "riscv64" => 32 * 1024 * 1024,     // 32MB - QEMU virt pflash1
-        "aarch64" => 64 * 1024 * 1024,     // 64MB - QEMU virt pflash1
+        "riscv64" => 32 * 1024 * 1024, // 32MB - QEMU virt pflash1
+        "aarch64" => 64 * 1024 * 1024, // 64MB - QEMU virt pflash1
         _ => 4 * 1024 * 1024,
     };
 
@@ -309,6 +375,16 @@ fn do_run_qemu(arch: &str, elf: &Path, bin: &Path, disk: &Path, pflash: Option<&
                 "-kernel".into(),
                 bin.to_str().unwrap().into(),
             ]);
+            // Attach pflash1 for pflash NPF test (mapped at 0x04000000 on virt)
+            if let Some(pf) = pflash {
+                args.extend([
+                    "-drive".into(),
+                    format!(
+                        "if=pflash,format=raw,unit=1,file={},readonly=on",
+                        pf.display()
+                    ),
+                ]);
+            }
         }
         "x86_64" => {
             args.extend([
@@ -352,7 +428,8 @@ fn main() {
         Cmd::Build { ref arch } => {
             let info = arch_info(arch);
             install_config(&root, arch);
-            let _payload = build_payload(&root, &info);
+            install_payload_config(&root, arch);
+            let _payload = build_payload(&root, &info, arch);
             do_build(&root, &info);
             println!("Build complete for {arch} ({})", info.target);
         }
@@ -360,15 +437,16 @@ fn main() {
             let info = arch_info(arch);
             install_config(&root, arch);
 
-            // 1. Build payload (gkernel)
-            let payload_bin = build_payload(&root, &info);
+            // 1. Install payload config and build payload (gkernel/readpflash)
+            install_payload_config(&root, arch);
+            let payload_bin = build_payload(&root, &info, arch);
 
             // 2. Create disk image with payload
             let disk = root.join("target").join(format!("disk-{arch}.img"));
             create_fat_disk_image(&disk, &payload_bin);
 
-            // 3. Create pflash image (for riscv64 NPF passthrough test)
-            let pflash = if arch == "riscv64" {
+            // 3. Create pflash image (for riscv64/aarch64 NPF passthrough test)
+            let pflash = if arch == "riscv64" || arch == "aarch64" {
                 Some(create_pflash_image(&root, arch))
             } else {
                 None
