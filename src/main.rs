@@ -807,11 +807,14 @@ fn x86_64_main() {
 
     let vmcb_pa = virt_to_phys_ptr(&vmcb.data[0]);
 
-    // ── 10. Run guest in loop ──
+    // ── 10. Create guest GPR save area ──
+    let mut gprs = SvmGuestGprs::new();
+
+    // ── 11. Run guest in loop ──
     ax_println!("Entering VM run loop...");
     loop {
         unsafe {
-            _run_guest(vmcb_pa, host_vmcb_pa);
+            _run_guest(vmcb_pa, host_vmcb_pa, &mut gprs);
         }
 
         let exit_code = vmcb.exit_code();

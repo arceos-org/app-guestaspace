@@ -1,6 +1,6 @@
 [package]
 name = "arceos-guestaspace"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 authors = ["Lei Shi <shi_lei@massclouds.com>", "Yu Chen <yuchen@tsinghua.edu.cn>"]
 description = "ArceOS Guest Address Space (Hypervisor): runs a guest OS with loop-based VM exit handling and nested page fault support — RISC-V H-extension, ARM AArch64 EL2, and AMD SVM"

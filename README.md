@@ -31,6 +31,8 @@ The guest kernel (`gkernel`) is a minimal program that:
 
 > **Note on AArch64**: Because the ArceOS platform crate drops from EL2 to EL1 during boot, the hypervisor runs at EL1 and the guest at EL0. Guest page tables are managed via TTBR0_EL1, and data aborts from EL0 serve as the equivalent of nested page faults. This still demonstrates the same on-demand page mapping mechanism as true Stage-2 virtualization.
 
+> **Note on x86_64 AMD SVM**: The hypervisor uses VMRUN/VMEXIT with hardware Nested Page Tables (NPT). Guest GPRs (RCX–R15) are saved/restored by software via an `SvmGuestGprs` structure across VMRUN/VMEXIT transitions — unlike RAX/RIP/RSP which are handled by the VMCB save-area. PFlash is emulated in software: on NPF at GPA 0xFFC00000, the hypervisor allocates a page and writes the "pfld" magic bytes.
+
 ## Control Flow (h_2_0 Compatible)
 
 ```
@@ -165,11 +167,24 @@ Hypervisor ok!
 
 ```
 Hypervisor ...
+Pre-allocating 2048 KB guest RAM at GPA 0x0...
 app: /sbin/gkernel
-Loaded ... bytes from /sbin/gkernel
+Loaded 2872 bytes from /sbin/gkernel
 Entering VM run loop...
-       d8888                            .d88888b.   .d8888b.   (guest ArceOS banner)
-       ...
+
+       d8888                            .d88888b.   .d8888b.
+      d88888                           d88P" "Y88b d88P  Y88b
+     d88P888                           888     888 Y88b.
+    d88P 888 888d888  .d8888b  .d88b.  888     888  "Y888b.
+   d88P  888 888P"   d88P"    d8P  Y8b 888     888     "Y88b.
+  d88P   888 888     888      88888888 888     888       "888
+ d8888888888 888     Y88b.    Y8b.     Y88b. .d88P Y88b  d88P
+d88P     888 888      "Y8888P  "Y8888   "Y88888P"   "Y8888P"
+
+arch = x86_64
+platform = x86-pc
+smp = 1
+
 Reading PFlash at physical address 0xFFC00000...
 Try to access pflash dev region [0xFFC00000], got 0x646c6670
 Got pflash magic: pfld
@@ -202,7 +217,7 @@ app-guestaspace/
 │   ├── csrs.rs                # RISC-V hypervisor CSR definitions
 │   ├── sbi/                   # SBI message parsing (base, reset, fence, ...)
 │   ├── aarch64/               # AArch64 EL1→EL0 vCPU, guest.S, SVC handling
-│   └── x86_64/                # AMD SVM: VMCB, vmrun assembly, helpers
+│   └── x86_64/                # AMD SVM: VMCB, GPR save/restore, vmrun assembly
 ├── build.rs                   # Linker script auto-detection
 ├── Cargo.toml
 ├── rust-toolchain.toml
