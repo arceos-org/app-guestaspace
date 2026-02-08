@@ -15,17 +15,21 @@ The hypervisor (`arceos-guestaspace`) performs the following:
    - **Shutdown request**: When the guest issues a shutdown hypercall, the hypervisor exits cleanly
 4. **Demonstrates the h_2_0 control flow**: loop → VMRUN → VMEXIT → handle → repeat
 
-The guest kernel (`gkernel`) is a minimal bare-metal program that:
-1. Accesses an unmapped address (triggering an NPF)
-2. Performs a shutdown hypercall
+The guest kernel (`gkernel`) is a minimal program that:
+1. Prints the ArceOS ASCII art banner and platform information
+2. Reads a PFlash device at an unmapped MMIO address, triggering a nested page fault
+3. Prints the PFlash magic string (`pfld`) to verify correct page mapping
+4. Performs a shutdown hypercall
 
 ## Architecture Support
 
 | Architecture | Virtualization | Guest Mode | NPF Trigger Address | Shutdown Mechanism |
 |---|---|---|---|---|
-| RISC-V 64 | H-extension | VS-mode | `0x22000000` (pflash) | SBI `ecall` (Reset) |
-| AArch64 | EL2 | EL0 | `0x40202000` (unmapped) | PSCI `svc` (SYSTEM_OFF) |
-| x86_64 | AMD SVM | Real mode | `0x20000` (unmapped) | `vmmcall` |
+| RISC-V 64 | H-extension (hgatp) | VS-mode | `0x22000000` (pflash) | SBI `ecall` (Reset) |
+| AArch64 | EL1→EL0 (TTBR0) | EL0 | `0x04000000` (pflash) | SVC hypercall (exit) |
+| x86_64 | AMD SVM (NPT) | Long mode | `0xFFC00000` (pflash) | `vmmcall` (PSCI) |
+
+> **Note on AArch64**: Because the ArceOS platform crate drops from EL2 to EL1 during boot, the hypervisor runs at EL1 and the guest at EL0. Guest page tables are managed via TTBR0_EL1, and data aborts from EL0 serve as the equivalent of nested page faults. This still demonstrates the same on-demand page mapping mechanism as true Stage-2 virtualization.
 
 ## Control Flow (h_2_0 Compatible)
 
@@ -121,20 +125,17 @@ cargo xtask build --arch riscv64
 ### RISC-V 64
 
 ```
-       d8888                            .d88888b.   .d8888b.
-      ...
-d88P     888 888      "Y8888P  "Y8888   "Y88888P"   "Y8888P"
-
-arch = riscv64
-platform = riscv64-qemu-virt
-smp = 1
-
 Hypervisor ...
+Pre-allocating 16 MB guest RAM at 0x80000000...
 app: /sbin/gkernel
-paddr: PA:0x80633000
+Loaded 110656 bytes from /sbin/gkernel
 Entering VM run loop...
-VmExit: NestedPageFault addr=0x22000000
-VmExit Reason: VSuperEcall: Some(Reset(...))
+       d8888                            .d88888b.   .d8888b.   (guest ArceOS banner)
+       ...
+Reading PFlash at physical address 0x22000000...
+Try to access pflash dev region [0xFFFFFFC022000000], got 0x646C6670
+Got pflash magic: pfld
+Guest: SBI SRST shutdown
 Shutdown vm normally!
 Hypervisor ok!
 ```
@@ -142,13 +143,20 @@ Hypervisor ok!
 ### AArch64
 
 ```
-       d8888          ...
 Hypervisor ...
 app: /sbin/gkernel
-paddr: PA:0x404f4000
+Loaded 3132 bytes (1 pages) from /sbin/gkernel
+Guest stack: 0x41000000 - 0x41008000
 Entering VM run loop...
-VmExit: DataAbort addr=0x40202000
-VmExit Reason: SVC: PSCI SYSTEM_OFF
+       d8888                            .d88888b.   .d8888b.   (guest ArceOS banner)
+       ...
+arch = aarch64
+platform = aarch64-qemu-virt
+smp = 1
+
+Reading PFlash at physical address 0x04000000...
+Try to access pflash dev region [0x04000000], got 0x646c6670
+Got pflash magic: pfld
 Shutdown vm normally!
 Hypervisor ok!
 ```
@@ -156,13 +164,15 @@ Hypervisor ok!
 ### x86_64 (AMD SVM)
 
 ```
-       d8888          ...
 Hypervisor ...
 app: /sbin/gkernel
-paddr: PA:0x44e000
+Loaded ... bytes from /sbin/gkernel
 Entering VM run loop...
-VmExit: NPF addr=0x20000
-VmExit Reason: VMMCALL
+       d8888                            .d88888b.   .d8888b.   (guest ArceOS banner)
+       ...
+Reading PFlash at physical address 0xFFC00000...
+Try to access pflash dev region [0xFFC00000], got 0x646c6670
+Got pflash magic: pfld
 Shutdown vm normally!
 Hypervisor ok!
 ```
@@ -191,7 +201,7 @@ app-guestaspace/
 │   ├── regs.rs                # RISC-V general-purpose registers
 │   ├── csrs.rs                # RISC-V hypervisor CSR definitions
 │   ├── sbi/                   # SBI message parsing (base, reset, fence, ...)
-│   ├── aarch64/               # AArch64 EL2 vCPU, guest.S, HVC handling
+│   ├── aarch64/               # AArch64 EL1→EL0 vCPU, guest.S, SVC handling
 │   └── x86_64/                # AMD SVM: VMCB, vmrun assembly, helpers
 ├── build.rs                   # Linker script auto-detection
 ├── Cargo.toml
@@ -206,24 +216,24 @@ app-guestaspace/
 1. Copies `configs/<ARCH>.toml` → `.axconfig.toml`
 2. Builds the guest payload (`gkernel`) for the target architecture
 3. Creates a 64MB FAT32 disk image with `/sbin/gkernel`
-4. For riscv64: creates a 32MB pflash image with "pfld" magic at offset 0
+4. For riscv64/aarch64: creates a pflash image with "pfld" magic at offset 0
 5. Builds the hypervisor kernel with `--features axstd`
-6. Launches QEMU with VirtIO block device (and pflash for riscv64)
+6. Launches QEMU with VirtIO block device and pflash
 
 ### VM Exit Handling
 
 | Architecture | NPF Exit | NPF Address Source | Shutdown Exit |
 |---|---|---|---|
-| RISC-V 64 | `scause` = 21/23 | `htval << 2 \| stval & 3` | `scause` = 10 (VSupervisorEnvCall) + SBI Reset |
-| AArch64 | ESR EC = 0x24 | `FAR` register | ESR EC = 0x15 (SVC) + PSCI SYSTEM_OFF |
-| x86_64 SVM | VMEXIT 0x400 | VMCB EXITINFO2 | VMEXIT 0x81 (VMMCALL) |
+| RISC-V 64 | `scause` = 20/21/23 | `htval << 2 \| stval & 3` | `scause` = 10 (VSupervisorEnvCall) + SBI Reset |
+| AArch64 | ESR EC = 0x24 (Data Abort from EL0) | `FAR_EL1` register | ESR EC = 0x15 (SVC) + x8 = 2 (exit) |
+| x86_64 SVM | VMEXIT 0x400 (NPF) | VMCB EXITINFO2 | VMEXIT 0x81 (VMMCALL) + RAX = PSCI SYSTEM_OFF |
 
 ### QEMU Configuration
 
 | Architecture | QEMU Command | Special Options |
 |---|---|---|
-| riscv64 | `qemu-system-riscv64` | `-machine virt -bios default` + pflash1 |
-| aarch64 | `qemu-system-aarch64` | `-cpu max -machine virt,virtualization=on` |
+| riscv64 | `qemu-system-riscv64` | `-machine virt -bios default` + pflash1 (32MB) |
+| aarch64 | `qemu-system-aarch64` | `-cpu max -machine virt,virtualization=on` + pflash1 (64MB) |
 | x86_64 | `qemu-system-x86_64` | `-machine q35 -cpu EPYC` |
 
 ## Key Dependencies

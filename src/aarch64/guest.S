@@ -111,16 +111,16 @@ _guest_vectors:
     .balign 0x80
 
     /* Lower EL using AArch64 — Synchronous (guest SVC traps here) */
-    b _guest_exit
+    b _guest_exit_sync
     .balign 0x80
     /* Lower EL using AArch64 — IRQ */
-    b _guest_exit
+    b _guest_exit_irq
     .balign 0x80
     /* Lower EL using AArch64 — FIQ */
-    b _guest_exit
+    b _guest_exit_irq
     .balign 0x80
     /* Lower EL using AArch64 — SError */
-    b _guest_exit
+    b _guest_exit_irq
     .balign 0x80
 
     /* Lower EL using AArch32 — Synchronous */
@@ -140,18 +140,31 @@ _unhandled_exception:
     b _unhandled_exception      /* Spin forever on unhandled */
 
 /*
- * Guest exit handler.
+ * Guest exit handlers — synchronous and asynchronous (IRQ/FIQ/SError).
  *
  * On entry we are back at EL1 (from EL0 trap).
  * SP = SP_EL1 (the kernel stack, same as before eret).
  * x0-x30 still hold guest register values.
+ *
+ * The synchronous path sets trap.is_irq = 0.
+ * The IRQ/FIQ/SError path sets trap.is_irq = 1.
+ * This allows the hypervisor to distinguish real SVCs from spurious IRQs.
  */
-_guest_exit:
-    /* Step 1: Save guest x0, x1 onto the EL1 stack */
+_guest_exit_sync:
     stp x0, x1, [sp, #-16]!
-
-    /* Step 2: Load VmCpuRegisters pointer (saved before eret) */
     ldr x0, [sp, #16]
+    str xzr, [x0, #{trap_is_irq}]       /* is_irq = 0 (synchronous) */
+    b _guest_exit_common
+
+_guest_exit_irq:
+    stp x0, x1, [sp, #-16]!
+    ldr x0, [sp, #16]
+    mov x1, #1
+    str x1, [x0, #{trap_is_irq}]        /* is_irq = 1 (interrupt) */
+    b _guest_exit_common
+
+_guest_exit_common:
+    /* x0 = VmCpuRegisters pointer, guest x0/x1 on stack */
 
     /* Step 3: Save guest x2-x30 (these still hold guest values) */
     stp  x2,  x3, [x0, #{guest_x2}]

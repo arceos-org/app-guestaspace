@@ -496,6 +496,16 @@ fn aarch64_main() {
             aarch64::vcpu::_run_guest(&mut ctx);
         }
 
+        // Check if exit was caused by an IRQ/FIQ/SError (not a synchronous exception).
+        // On AArch64, when an IRQ targets EL1 while executing at EL0, the CPU takes
+        // the interrupt regardless of EL0's DAIF masks. ESR_EL1 is NOT updated for
+        // asynchronous exceptions, so we must distinguish them via the vector entry.
+        if ctx.trap.is_irq != 0 {
+            // Asynchronous exit (IRQ/FIQ/SError) — just re-enter the guest.
+            // Do NOT interpret ESR or advance ELR.
+            continue;
+        }
+
         let esr = ctx.trap.esr;
         let ec = (esr >> 26) & 0x3F;
 
@@ -503,22 +513,24 @@ fn aarch64_main() {
             0x15 => {
                 // SVC from EL0 — Hypercall
                 // ABI: x8 = function ID, x0 = argument
+                //
+                // NOTE: On AArch64, ELR_EL1 for SVC already points to the
+                // instruction AFTER the SVC (the "preferred return address").
+                // This differs from RISC-V where sepc points to the ecall itself.
+                // Therefore we do NOT advance ELR here.
                 let func = ctx.guest.gprs.0[8]; // x8
                 match func {
                     1 => {
                         // putchar: x0 = character
                         let ch = ctx.guest.gprs.0[0] as u8;
                         ax_print!("{}", ch as char);
-                        ctx.guest.elr += 4;
                     }
                     2 => {
                         // exit
                         ax_println!("Shutdown vm normally!");
                         break;
                     }
-                    _ => {
-                        ctx.guest.elr += 4;
-                    }
+                    _ => {}
                 }
             }
             0x24 => {

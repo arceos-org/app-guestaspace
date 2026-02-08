@@ -60,6 +60,9 @@ pub struct TrapState {
     pub esr: u64,
     /// Fault Address Register (FAR_EL1).
     pub far: u64,
+    /// Non-zero if the exit was caused by an IRQ/FIQ/SError (not a synchronous exception).
+    /// Synchronous exceptions (SVC, data abort) set this to 0.
+    pub is_irq: u64,
 }
 
 /// Complete vCPU register state for guest entry/exit.
@@ -155,8 +158,9 @@ global_asm!(
     guest_spsr = const guest_field_offset!(spsr),
 
     // Trap state
-    trap_esr   = const trap_field_offset!(esr),
-    trap_far   = const trap_field_offset!(far),
+    trap_esr    = const trap_field_offset!(esr),
+    trap_far    = const trap_field_offset!(far),
+    trap_is_irq = const trap_field_offset!(is_irq),
 );
 
 unsafe extern "C" {
