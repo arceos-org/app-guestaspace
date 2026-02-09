@@ -2,7 +2,7 @@
 
 A standalone hypervisor application running on [ArceOS](https://github.com/arceos-org/arceos) unikernel, with all dependencies sourced from [crates.io](https://crates.io). Implements guest address space management with **loop-based VM exit handling** and **nested page fault (NPF)** support across three architectures.
 
-This crate is derived from the [h_2_0](https://github.com/arceos-org/arceos/tree/main/tour/h_2_0) tutorial crate in the ArceOS ecosystem, extending it to support multiple processor architectures.
+This crate is derived from the ArceOS hypervisor tutorial in the [ArceOS](https://github.com/arceos-org/arceos) ecosystem, extending it to support multiple processor architectures.
 
 ## What It Does
 
@@ -13,7 +13,7 @@ The hypervisor (`arceos-guestaspace`) performs the following:
 3. **Runs the guest in a loop**, handling VM exits:
    - **Nested Page Fault (NPF)**: When the guest accesses an unmapped address, the hypervisor maps the page and resumes guest execution
    - **Shutdown request**: When the guest issues a shutdown hypercall, the hypervisor exits cleanly
-4. **Demonstrates the h_2_0 control flow**: loop → VMRUN → VMEXIT → handle → repeat
+4. **Demonstrates the VM run loop control flow**: loop → VMRUN → VMEXIT → handle → repeat
 
 The guest kernel (`gkernel`) is a minimal program that:
 1. Prints the ArceOS ASCII art banner and platform information
@@ -33,7 +33,7 @@ The guest kernel (`gkernel`) is a minimal program that:
 
 > **Note on x86_64 AMD SVM**: The hypervisor uses VMRUN/VMEXIT with hardware Nested Page Tables (NPT). Guest GPRs (RCX–R15) are saved/restored by software via an `SvmGuestGprs` structure across VMRUN/VMEXIT transitions — unlike RAX/RIP/RSP which are handled by the VMCB save-area. PFlash is emulated in software: on NPF at GPA 0xFFC00000, the hypervisor allocates a page and writes the "pfld" magic bytes.
 
-## Control Flow (h_2_0 Compatible)
+## Control Flow
 
 ```
 Hypervisor starts
@@ -63,9 +63,9 @@ Hypervisor starts
 
 | Crate | Role | Description |
 |---|---|---|
-| **arceos-guestaspace** (this) | Hypervisor | Runs guest with NPF handling (like h_2_0) |
-| [arceos-guestmode](https://crates.io/crates/arceos-guestmode) | Hypervisor | Runs minimal guest, single VM exit (like h_1_0) |
-| [arceos-readpflash](https://crates.io/crates/arceos-readpflash) | Guest | Reads PFlash via MMIO (like u_3_0) |
+| **arceos-guestaspace** (this) | Hypervisor | Runs guest with NPF handling |
+| [arceos-guestmode](https://crates.io/crates/arceos-guestmode) | Hypervisor | Runs minimal guest, single VM exit |
+| [arceos-readpflash](https://crates.io/crates/arceos-readpflash) | Guest | Reads PFlash via MMIO |
 
 ## Prerequisites
 
