@@ -134,16 +134,10 @@ fn build_payload(root: &Path, info: &ArchInfo, arch: &str) -> PathBuf {
         "gkernel".into(),
     ];
 
+    // All architectures use axstd (full ArceOS guest with multitasking)
     // Always add guest-kernel feature
-    let mut features = vec!["guest-kernel"];
-
-    // Only riscv64 uses the axstd feature (full ArceOS guest)
-    if arch == "riscv64" {
-        features.push("axstd");
-    }
-
     build_args.push("--features".into());
-    build_args.push(features.join(","));
+    build_args.push("guest-kernel".into());
 
     let status = cmd
         .args(&build_args)
@@ -307,7 +301,7 @@ fn do_build(root: &Path, info: &ArchInfo) {
             "--target",
             info.target,
             "--features",
-            "axstd",
+            "hypervisor",
             "--manifest-path",
             manifest.to_str().unwrap(),
         ])
@@ -338,7 +332,7 @@ fn do_objcopy(elf: &Path, bin: &Path, objcopy_arch: &str) {
     }
 }
 
-/// Run QEMU with VirtIO block device and optional pflash.
+/// Run QEMU with VirtIO block device.
 fn do_run_qemu(arch: &str, elf: &Path, bin: &Path, disk: &Path, pflash: Option<&Path>) {
     let mem = "128M";
     let smp = "1";

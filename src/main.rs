@@ -147,6 +147,21 @@ fn riscv64_main() {
     let flags = MappingFlags::READ | MappingFlags::WRITE
         | MappingFlags::EXECUTE | MappingFlags::USER;
 
+    // Check pflash
+    // PFlash1 physical address on RISC-V 64 QEMU virt machine.
+    // pflash0 @ 0x20000000 (32MB), pflash1 @ 0x22000000 (32MB).
+    const PFLASH_START: usize = 0x2200_0000;
+    
+    // Check pflash
+    ax_println!("Reading PFlash at physical address {:#X}...", PFLASH_START);
+    let va = axhal::mem::phys_to_virt(PFLASH_START.into()).as_usize();
+    let ptr = va as *const u32;
+    unsafe {
+        ax_println!("Try to access pflash dev region [{:#X}], got {:#X}", va, *ptr);
+        let magic = (*ptr).to_ne_bytes();
+        ax_println!("Got pflash magic: {}", core::str::from_utf8(&magic).unwrap());
+    }
+
     // ════════════════════════════════════════════════════
     //  Step 2: Pre-allocate guest physical RAM  (like h_2_0 map_alloc)
     //
