@@ -105,7 +105,7 @@ fn install_payload_config(root: &Path, arch: &str) {
 /// The payload is a full ArceOS application built with the `axstd` feature.
 fn build_payload(root: &Path, info: &ArchInfo, arch: &str) -> PathBuf {
     let payload_dir = root.join("payload").join("gkernel");
-    let manifest = payload_dir.join("Cargo.toml");
+    let manifest = root.join("Cargo.toml");
 
     println!("Building payload (gkernel) for {arch} ...");
 
@@ -130,13 +130,20 @@ fn build_payload(root: &Path, info: &ArchInfo, arch: &str) -> PathBuf {
         manifest.to_str().unwrap().to_string(),
         "--target".into(),
         info.target.to_string(),
+        "--bin".into(),
+        "gkernel".into(),
     ];
+
+    // Always add guest-kernel feature
+    let mut features = vec!["guest-kernel"];
 
     // Only riscv64 uses the axstd feature (full ArceOS guest)
     if arch == "riscv64" {
-        build_args.push("--features".into());
-        build_args.push("axstd".into());
+        features.push("axstd");
     }
+
+    build_args.push("--features".into());
+    build_args.push(features.join(","));
 
     let status = cmd
         .args(&build_args)
@@ -151,7 +158,7 @@ fn build_payload(root: &Path, info: &ArchInfo, arch: &str) -> PathBuf {
         process::exit(status.code().unwrap_or(1));
     }
 
-    let payload_elf = payload_dir
+    let payload_elf = root
         .join("target")
         .join(info.target)
         .join("release")
