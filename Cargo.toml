@@ -2,7 +2,10 @@
 name = "arceos-guestaspace"
 version = "0.4.6"
 edition = "2024"
-authors = ["Lei Shi <shi_lei@massclouds.com>", "Yu Chen <yuchen@tsinghua.edu.cn>"]
+authors = [
+    "Lei Shi <shi_lei@massclouds.com>",
+    "Yu Chen <yuchen@tsinghua.edu.cn>",
+]
 description = "ArceOS Guest Address Space (Hypervisor): runs a guest OS with loop-based VM exit handling and nested page fault support — RISC-V H-extension, ARM AArch64 EL2, and AMD SVM"
 homepage = "https://github.com/arceos-org/app-guestaspace"
 repository = "https://github.com/arceos-org/app-guestaspace"
@@ -28,11 +31,21 @@ default = []
 axstd = ["dep:axstd"]
 guest-kernel = ["axstd"]
 hypervisor = [
-    "axstd", "dep:axfeat", "dep:axfs", "dep:axio",
-    "dep:axmm", "dep:axhal", "dep:axsync", "dep:axtask", "dep:axlog",
-    "dep:axerrno", "dep:memory_addr",
+    "axstd",
+    "dep:axfeat",
+    "dep:axfs",
+    "dep:axio",
+    "dep:axmm",
+    "dep:axhal",
+    "dep:axsync",
+    "dep:axtask",
+    "dep:axlog",
+    "dep:axerrno",
+    "dep:memory_addr",
     "dep:memoffset",
-    "axstd/multitask", "axstd/sched-cfs",
+    "axstd/multitask",
+    "axstd/sched-cfs",
+    "axstd/fs",
 ]
 xtask = ["dep:clap", "dep:fatfs"]
 
@@ -58,19 +71,33 @@ required-features = ["guest-kernel"]
 # axtask = { version = "0.2.2-preview.3", optional = true }
 # axlog = { version = "0.2.2-preview.1", optional = true }
 
-axstd = { git = "https://github.com/arceos-org/arceos", branch = "dev", features = ["defplat", "alloc", "paging"], optional = true }
-axfeat = { git = "https://github.com/arceos-org/arceos", branch = "dev", features = ["fs"], optional = true }
-axfs = { git = "https://github.com/arceos-org/arceos", branch = "dev", features = ["fat"], optional = true }
+axstd = { git = "https://github.com/arceos-org/arceos", branch = "dev", features = [
+    "defplat",
+    "alloc",
+    "paging",
+], optional = true }
+axfeat = { git = "https://github.com/arceos-org/arceos", branch = "dev", features = [
+    "fs",
+], optional = true }
+axfs = { git = "https://github.com/arceos-org/arceos", branch = "dev", features = [
+    "fat",
+], optional = true }
 axio = { version = "0.3.0-pre.1", optional = true }
-axmm = { git = "https://github.com/arceos-org/arceos", branch = "dev", features = ["copy"], optional = true }
-axhal = { git = "https://github.com/arceos-org/arceos", branch = "dev", features = ["uspace"], optional = true }
+axmm = { git = "https://github.com/arceos-org/arceos", branch = "dev", features = [
+    "copy",
+], optional = true }
+axhal = { git = "https://github.com/arceos-org/arceos", branch = "dev", features = [
+    "uspace",
+], optional = true }
 axsync = { git = "https://github.com/arceos-org/arceos", branch = "dev", optional = true }
 axtask = { git = "https://github.com/arceos-org/arceos", branch = "dev", optional = true }
 axlog = { git = "https://github.com/arceos-org/arceos", branch = "dev", optional = true }
 
 axerrno = { version = "0.1", optional = true }
 memory_addr = { version = "0.4", optional = true }
-memoffset = { version = ">=0.6.5", features = ["unstable_const"], optional = true }
+memoffset = { version = ">=0.6.5", features = [
+    "unstable_const",
+], optional = true }
 
 # ─── Xtask dependencies ───
 clap = { version = "4", features = ["derive"], optional = true }

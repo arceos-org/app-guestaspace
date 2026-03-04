@@ -145,7 +145,7 @@ fn riscv64_main() {
     // ════════════════════════════════════════════════════
     //  Step 1: Create guest address space
     // ════════════════════════════════════════════════════
-    let mut uspace = axmm::AddrSpace::new_empty(va!(0x0), 0x7fff_ffff_f000).unwrap();
+    let mut uspace = axmm::new_user_aspace(va!(0x0), 0x7fff_ffff_f000).unwrap();
 
     let flags =
         MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE | MappingFlags::USER;
@@ -454,7 +454,7 @@ fn aarch64_main() {
 
     // ── 1. Create guest address space ──
     // Must cover pflash (0x04000000) and guest code (0x40200000) + stack
-    let mut uspace = axmm::AddrSpace::new_empty(va!(0x0), 0x4200_0000).unwrap();
+    let mut uspace = axmm::new_user_aspace(va!(0x0), 0x4200_0000).unwrap();
 
     let flags =
         MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE | MappingFlags::USER;
@@ -660,7 +660,7 @@ fn x86_64_main() {
 
     // ── 5. Create NPT and pre-allocate guest RAM ──
     // Range covers both low memory (code, page tables, stack) and pflash
-    let mut npt = axmm::AddrSpace::new_empty(va!(0x0), 0x1_0000_0000).unwrap();
+    let mut npt = axmm::new_user_aspace(va!(0x0), 0x1_0000_0000).unwrap();
 
     let flags =
         MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE | MappingFlags::USER;

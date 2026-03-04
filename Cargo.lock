@@ -164,12 +164,14 @@ dependencies = [
 [[package]]
 name = "arceos_api"
 version = "0.2.2-hv.6"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "axalloc",
  "axconfig",
+ "axdriver",
  "axerrno 0.2.2",
  "axfeat",
+ "axfs",
  "axhal",
  "axio",
  "axlog",
@@ -195,7 +197,7 @@ dependencies = [
 [[package]]
 name = "arm-gic-driver"
 version = "0.16.4"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "aarch64-cpu 11.2.0",
  "bitflags 2.11.0",
@@ -256,7 +258,7 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 [[package]]
 name = "axalloc"
 version = "0.2.2-hv.6"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "axallocator",
  "axerrno 0.2.2",
@@ -293,7 +295,7 @@ dependencies = [
 [[package]]
 name = "axconfig"
 version = "0.2.2-hv.6"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "axconfig-macros",
 ]
@@ -347,7 +349,7 @@ dependencies = [
 [[package]]
 name = "axdriver"
 version = "0.2.2-hv.6"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "axalloc",
  "axconfig",
@@ -432,7 +434,7 @@ dependencies = [
 [[package]]
 name = "axfeat"
 version = "0.2.2-hv.6"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "axalloc",
  "axbacktrace",
@@ -448,7 +450,7 @@ dependencies = [
 [[package]]
 name = "axfs"
 version = "0.2.2-hv.6"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "axalloc",
  "axdriver",
@@ -532,7 +534,7 @@ dependencies = [
 [[package]]
 name = "axhal"
 version = "0.2.2-hv.6"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "axalloc",
  "axconfig",
@@ -581,7 +583,7 @@ dependencies = [
 [[package]]
 name = "axlog"
 version = "0.2.2-preview.1"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "cfg-if",
  "crate_interface 0.1.4",
@@ -592,7 +594,7 @@ dependencies = [
 [[package]]
 name = "axmm"
 version = "0.2.2-hv.6"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "axalloc",
  "axconfig",
@@ -658,7 +660,7 @@ dependencies = [
 [[package]]
 name = "axplat-dyn"
 version = "0.2.2-hv.6"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "anyhow",
  "axconfig-macros",
@@ -757,7 +759,7 @@ dependencies = [
 [[package]]
 name = "axruntime"
 version = "0.2.2-hv.6"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "axalloc",
  "axbacktrace",
@@ -792,7 +794,7 @@ dependencies = [
 [[package]]
 name = "axstd"
 version = "0.2.2-hv.6"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "arceos_api",
  "axerrno 0.2.2",
@@ -807,7 +809,7 @@ dependencies = [
 [[package]]
 name = "axsync"
 version = "0.2.2-hv.6"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "axtask",
  "event-listener",
@@ -818,7 +820,7 @@ dependencies = [
 [[package]]
 name = "axtask"
 version = "0.2.2-hv.6"
-source = "git+https://github.com/arceos-org/arceos?branch=dev#a5b24aa6e8c31bcd2db8e7aa352666ee93614e40"
+source = "git+https://github.com/arceos-org/arceos?branch=dev#66418a0de6512ab833e25683679acf5d0468c9c7"
 dependencies = [
  "axconfig",
  "axerrno 0.2.2",
@@ -1629,7 +1631,7 @@ dependencies = [
 [[package]]
 name = "kasm-aarch64"
 version = "0.2.0"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "darling 0.20.11",
  "proc-macro2",
@@ -1650,7 +1652,7 @@ dependencies = [
 [[package]]
 name = "kernutil"
 version = "0.2.0"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "heapless",
  "num-align",
@@ -1822,8 +1824,8 @@ dependencies = [
 
 [[package]]
 name = "mmio-api"
-version = "0.1.3"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+version = "0.2.0"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "derive_more",
  "thiserror",
@@ -1874,7 +1876,7 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 [[package]]
 name = "page-table-generic"
 version = "0.7.0"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "bitflags 2.11.0",
  "heapless",
@@ -1929,7 +1931,7 @@ dependencies = [
 [[package]]
 name = "pcie"
 version = "0.4.5"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "bare-test-macros",
  "bit_field",
@@ -2028,7 +2030,7 @@ checksum = "dc33ff2d4973d518d823d61aa239014831e521c75da58e3df4840d3f47749d09"
 [[package]]
 name = "ranges-ext"
 version = "0.6.1"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "heapless",
  "thiserror",
@@ -2061,27 +2063,19 @@ dependencies = [
  "as-any",
  "async-trait",
  "paste",
- "rdif-def 0.2.1",
+ "rdif-def 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror",
 ]
 
 [[package]]
 name = "rdif-base"
 version = "0.7.0"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "as-any",
  "async-trait",
  "paste",
- "rdif-def 0.2.0",
- "thiserror",
-]
-
-[[package]]
-name = "rdif-def"
-version = "0.2.0"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
-dependencies = [
+ "rdif-def 0.2.1 (git+https://github.com/drivercraft/sparreal-os)",
  "thiserror",
 ]
 
@@ -2095,9 +2089,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rdif-def"
+version = "0.2.1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
+dependencies = [
+ "thiserror",
+]
+
+[[package]]
 name = "rdif-intc"
 version = "0.13.0"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "cfg-if",
  "rdif-base 0.7.0 (git+https://github.com/drivercraft/sparreal-os)",
@@ -2106,7 +2108,7 @@ dependencies = [
 [[package]]
 name = "rdif-pcie"
 version = "0.1.4"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "pci_types",
  "rdif-base 0.7.0 (git+https://github.com/drivercraft/sparreal-os)",
@@ -2130,7 +2132,7 @@ dependencies = [
 [[package]]
 name = "rdrive"
 version = "0.18.12"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "fdt-parser",
  "log",
@@ -2146,7 +2148,7 @@ dependencies = [
 [[package]]
 name = "rdrive-macros"
 version = "0.4.1"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2373,7 +2375,7 @@ dependencies = [
 [[package]]
 name = "someboot"
 version = "0.1.3"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "aarch64-cpu 11.2.0",
  "aarch64-cpu-ext",
@@ -2416,7 +2418,7 @@ dependencies = [
 [[package]]
 name = "somehal"
 version = "0.5.2"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "aarch64-cpu 11.2.0",
  "anyhow",
@@ -2436,7 +2438,7 @@ dependencies = [
 [[package]]
 name = "somehal-macros"
 version = "0.1.0"
-source = "git+https://github.com/drivercraft/sparreal-os#00772bec17855980a2144452cf6be91e983428d1"
+source = "git+https://github.com/drivercraft/sparreal-os#a3f7acc93fb00e85167fe5abf70685c9241a2937"
 dependencies = [
  "darling 0.21.3",
  "proc-macro2",
