@@ -5,3 +5,4 @@ target
 *.elf
 *.bin
 *.img
+.axconfig.toml

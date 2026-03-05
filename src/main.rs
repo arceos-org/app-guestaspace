@@ -551,7 +551,7 @@ fn aarch64_main() {
                 let _ = uspace.map_linear(
                     page_addr.into(),
                     PhysAddr::from(page_addr),
-                    PAGE_SIZE_4K,
+                    axhal::mem::PAGE_SIZE_4K,
                     flags,
                 );
 

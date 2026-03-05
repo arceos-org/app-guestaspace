@@ -1,8 +1,8 @@
 use core::arch::global_asm;
 use core::mem::size_of;
 
-use memoffset::offset_of;
 use super::regs::GeneralPurposeRegisters;
+use memoffset::offset_of;
 
 /// Host (EL1 hypervisor) state saved/restored when entering/exiting the guest.
 #[repr(C)]
@@ -89,15 +89,11 @@ impl Default for VmCpuRegisters {
 // --- Offset computation for assembly ---
 
 const fn host_reg_offset(index: usize) -> usize {
-    offset_of!(VmCpuRegisters, host)
-        + offset_of!(HostState, regs)
-        + index * size_of::<u64>()
+    offset_of!(VmCpuRegisters, host) + offset_of!(HostState, regs) + index * size_of::<u64>()
 }
 
 const fn guest_gpr_offset(index: usize) -> usize {
-    offset_of!(VmCpuRegisters, guest)
-        + offset_of!(GuestState, gprs)
-        + index * size_of::<u64>()
+    offset_of!(VmCpuRegisters, guest) + offset_of!(GuestState, gprs) + index * size_of::<u64>()
 }
 
 macro_rules! host_field_offset {

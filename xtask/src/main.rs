@@ -5,7 +5,10 @@ use std::process::{self, Command};
 
 /// ArceOS Guest Address Space — multi-architecture build & run tool
 #[derive(Parser)]
-#[command(name = "xtask", about = "Build and run arceos-guestaspace on different architectures")]
+#[command(
+    name = "xtask",
+    about = "Build and run arceos-guestaspace on different architectures"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Cmd,
@@ -139,13 +142,10 @@ fn build_payload(root: &Path, info: &ArchInfo, arch: &str) -> PathBuf {
     build_args.push("--features".into());
     build_args.push("guest-kernel".into());
 
-    let status = cmd
-        .args(&build_args)
-        .status()
-        .unwrap_or_else(|e| {
-            eprintln!("Error: failed to run cargo build for payload: {}", e);
-            process::exit(1);
-        });
+    let status = cmd.args(&build_args).status().unwrap_or_else(|e| {
+        eprintln!("Error: failed to run cargo build for payload: {}", e);
+        process::exit(1);
+    });
 
     if !status.success() {
         eprintln!("Error: payload compilation failed");
